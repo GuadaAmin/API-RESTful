@@ -74,8 +74,10 @@ class Productos {
 const newContainer = new Productos(`./products.txt`)
 const products = newContainer.getAll()
 
-newContainer.save({name: "trial", price: 2000, thumbnail: "http://placekitten.com/g/200/300"})
+//newContainer.save({name: "trial", price: 2000, thumbnail: "http://placekitten.com/g/200/300"})
 // console.log(products)
 //newContainer.getById(3)
 
 //export default Productos;
+
+module.exports = Productos;
