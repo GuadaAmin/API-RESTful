@@ -6,6 +6,29 @@ class Productos {
         this.productos = [];
     }
 
+    async getAll() {
+        try {
+            const file = await fs.readFile(`./${this.path}`, "utf-8");   
+            return JSON.parse(file);
+        } catch (error) {
+            console.log('No hay productos', error)
+            return [];
+        }
+
+    }
+
+    async getById(id) {
+        try {
+            const products = await this.getAll();
+            const filteredProduct = await products.slice([id-1], [id])
+            console.log(filteredProduct)
+            return (filteredProduct);
+        } catch (error) {
+            console.log('Producto no encontrado', error)
+            return [];
+        }
+    }
+
     async save(obj) {
         const products = await this.getAll();
 
@@ -22,45 +45,42 @@ class Productos {
 
         try {
             await fs.writeFile(`./${this.path}`, JSON.stringify(products, null, 2));
+            return newObj;
         } catch (error) {
             throw new Error('Ocurrió un error0')
         }
     }
-
-    async getById(id) {
-        try {
-            const products = await this.getAll();
-            const filteredProduct = await products.slice([id-1], [id])
-            console.log(filteredProduct)
-            return (filteredProduct);
-        } catch (error) {
-            console.log('Producto no encontrado', error)
-            return [];
+    
+    async update (id, product) {
+        const newProduct = {
+            id: Number(id),
+            ...product
+        }
+        const getProducts = await this.getAll();
+        const index = getProducts.findIndex((prod) => prod.id == id);
+        if(index !== -1) {
+            getProducts[index] = newProduct;
+            await fs.writeFile(`./${this.path}`, JSON.stringify(getProducts, null, 2));
+            return {message: `El producto con id ${id} fue actualizado correctamente`, newProduct};
+        } else {
+            return {error: 'Producto no encontrado'}
         }
     }
 
-    async getAll() {
-        try {
-            const file = await fs.readFile(`./${this.path}`, "utf-8");   
-            return JSON.parse(file);
-        } catch (error) {
-            console.log('No hay productos', error)
-            return [];
+    async deleteById(id) {
+        const objs = await this.getAll()
+        const index = objs.findIndex(o => o.id == id)
+        if (index == -1) {
+          throw new Error(`Error al borrar: no se encontró el id ${id}`)
         }
-
-    }
-
-    async deleteById (id) {
+    
+        objs.splice(index, 1)
         try {
-            const products = await this.getAll();
-            const newProducts = products.splice([id-1], 1);
-            await fs.writeFile(`./${this.path}`, JSON.stringify(newProducts, null, 2));
-            console.log(products)
+          await fs.writeFile(this.path, JSON.stringify(objs, null, 2))
         } catch (error) {
-            console.log('Producto no encontrado', error)
+          throw new Error(`Error al borrar: ${error}`)
         }
-
-    }
+      }
 
     async deleteAll () {
         try {
@@ -71,8 +91,8 @@ class Productos {
     }
 }
 
-const newContainer = new Productos(`./products.txt`)
-const products = newContainer.getAll()
+// const newContainer = new Productos(`./products.txt`)
+// const products = newContainer.getAll()
 
 //newContainer.save({name: "trial", price: 2000, thumbnail: "http://placekitten.com/g/200/300"})
 // console.log(products)
